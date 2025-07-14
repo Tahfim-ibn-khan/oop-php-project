@@ -10,8 +10,16 @@ class Router{
         $this->routes['post'][$path] = $callback;
     }
 
+    public function get($path, $callback){
+        $this->routes['get'][$path] = $callback;
+    }
 
-    // You c reate it once and this is used onece for Each case.
+    public function patch($path, $callback){
+        $this->routes['patch'][$path] = $callback;
+    }
+
+
+    // You create it once and this is used onece for Each case.
     public function resolve($method, $path) {
     $method = strtolower($method);
     $path = rtrim($path, '/');     
