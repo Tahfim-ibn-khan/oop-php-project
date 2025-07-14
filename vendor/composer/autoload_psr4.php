@@ -10,8 +10,12 @@ return array(
     'Symfony\\Polyfill\\Mbstring\\' => array($vendorDir . '/symfony/polyfill-mbstring'),
     'Symfony\\Polyfill\\Ctype\\' => array($vendorDir . '/symfony/polyfill-ctype'),
     'PhpOption\\' => array($vendorDir . '/phpoption/phpoption/src/PhpOption'),
+    'Models\\' => array($baseDir . '/models'),
+    'Helpers\\' => array($baseDir . '/helpers'),
     'GrahamCampbell\\ResultType\\' => array($vendorDir . '/graham-campbell/result-type/src'),
     'Dotenv\\' => array($vendorDir . '/vlucas/phpdotenv/src'),
+    'Core\\' => array($baseDir . '/core'),
+    'Controllers\\' => array($baseDir . '/controllers'),
     'Config\\' => array($baseDir . '/config'),
     'Bd88\\RawPhpProject\\' => array($baseDir . '/src'),
 );

@@ -19,7 +19,7 @@ class Database {
         $this->password = $_ENV['DB_PASSWORD'];
     }
 
-    public function connect() {
+    protected function connect() {
         try {
             $dsn = "pgsql:host={$this->host};port={$this->port};dbname={$this->dbname}";
             $pdo = new PDO($dsn, $this->username, $this->password);

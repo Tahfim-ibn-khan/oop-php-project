@@ -3,7 +3,11 @@
     "autoload": {
         "psr-4": {
             "Bd88\\RawPhpProject\\": "src/",
-             "Config\\": "config/"
+            "Config\\": "config/",
+            "Models\\": "models/",
+            "Controllers\\": "controllers/",
+            "Core\\": "core/",
+            "Helpers\\": "helpers/"
         }
     },
     "authors": [
