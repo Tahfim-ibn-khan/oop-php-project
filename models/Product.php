@@ -1,6 +1,6 @@
 <?php
 
-namespace Model;
+namespace Models;
 
 use Config\Database;
 
@@ -12,8 +12,8 @@ class Product extends Database{
         ";
         $stmt = $conn->prepare($query);
         $insertion = $stmt->execute([
-            "title" => "Apple",
-            "price" => 200
+            "title" => $title,
+            "price" => $price
         ]);
         if($insertion == TRUE){
             echo $title."Added for a price of ".$price."Taka";

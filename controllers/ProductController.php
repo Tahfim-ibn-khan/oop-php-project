@@ -1,8 +1,8 @@
 <?php
 
-namespace Controller;
+namespace Controllers;
 
-use Model\Product;
+use Models\Product;
 use Helpers\Response;
 
 class ProductController{
