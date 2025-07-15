@@ -15,7 +15,6 @@ class ProductController
         $this->productModel = $productModel;
     }
 
-
     private function getRequestData() {
         return Response::requestBody();
     }    
@@ -24,6 +23,7 @@ class ProductController
     {
 
         $data = $this->getRequestData();
+
 
         if (!isset($data['title'], $data['price'])) {
             return Response::json(['error' => 'invalid Input', 422]);
@@ -50,6 +50,7 @@ class ProductController
             'data' => $items
         ], 200);
     }
+
 
     public function getById($id)
     { // getAllList()
@@ -82,6 +83,7 @@ class ProductController
             return Response::json(["Data Update Failed"], 500);
         }
     }
+
 
 
     public function deleteProduct($id)
