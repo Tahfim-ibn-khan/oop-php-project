@@ -1,7 +1,6 @@
 <?php
 
 namespace Core;
-
 class Router{
     private $routes = [];
 
@@ -22,27 +21,32 @@ class Router{
         $this->routes['delete'][$path] = $callback;
     }
 
-
-
-    // You create it once and this is used once for Each case.
+    // You create it once and this is used onece for Each case.
     public function resolve($method, $path) {
         $method = strtolower($method);
         $path = rtrim($path, '/');
-
-        if (isset($this->routes[$method][$path])) {
-            $callback = $this->routes[$method][$path];
-
-            if (is_callable($callback)) {
-                call_user_func($callback);
-            } else {
-                http_response_code(500);
-                echo json_encode(['error' => 'Invalid route callback']);
-            }
-        } else {
+    
+        if (!isset($this->routes[$method])) {
             http_response_code(404);
-            echo json_encode(['error' => 'Route not found']);
+            echo json_encode(['error' => 'Method not allowed']);
+            return;
         }
-    }
-
+    
+        foreach ($this->routes[$method] as $route => $callback) {
+            $routePattern = preg_replace('#\{[^/]+\}#', '([^/]+)', $route);
+            $routePattern = '#^' . rtrim($routePattern, '/') . '$#';
+    
+            if (preg_match($routePattern, $path, $matches)) {
+                array_shift($matches); // Remove full match
+                [$controllerInstance, $methodName] = $callback;
+                echo call_user_func_array([$controllerInstance, $methodName], $matches);
+                return;
+            }
+        }
+    
+        http_response_code(404);
+        echo json_encode(['error' => 'Route not found']);
+    }    
+    
 }
 ?>

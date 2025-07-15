@@ -2,14 +2,12 @@
 
 namespace Controllers;
 
-use GrahamCampbell\ResultType\Success;
 use Models\Product;
 use Helpers\Response;
 
 class ProductController
 {
 
-    // Dependency Injection
     private $productModel;
 
     public function __construct(Product $productModel)
@@ -17,17 +15,23 @@ class ProductController
         $this->productModel = $productModel;
     }
 
-    public function store()
+
+    private function getRequestData() {
+        return Response::requestBody();
+    }    
+
+    public function createProduct()
     {
 
-        $data = json_decode(file_get_contents('php://input'), true); // findout alternate solution
+        $data = $this->getRequestData();
 
         if (!isset($data['title'], $data['price'])) {
             return Response::json(['error' => 'invalid Input', 422]);
         }
 
-        //$product = new Product(); this is not good practice and findout why and write better solution
-        $id = $this->productModel->create($data['title'], $data['price']); // Need few more info
+        //$product = new Product(); this is not good practice and find out why and write better solution
+
+        $id = $this->productModel->create($data['title'], $data['description'] ?? null, $data['price'], $data['stock_quantity'] ?? null, $data['image_url'] ?? null, $data['is_active'] ?? true); // Need few more info
         return Response::json([
             'message' => "Product Created",
             'id' => $id
@@ -38,7 +42,8 @@ class ProductController
     public function getAllList()
     { // getAllList()
 
-        $items = $this->productModel->view();
+
+        $items = $this->productModel->read();
 
         return Response::json([
             'message' => "Products Found",
@@ -46,15 +51,23 @@ class ProductController
         ], 200);
     }
 
-    public function update()
+    public function getById($id)
+    { // getAllList()
+
+        $items = $this->productModel->readById($id);
+
+        return Response::json([
+            'message' => "Product Found",
+            'data' => $items
+        ], 200);
+    }
+
+    public function updateProduct($id)
     {
-        $data = json_decode(file_get_contents('php://input'), true); // need better something
-        if (!isset($data['id'])) { //id should come from URL params
+        $data = $this->getRequestData();
+        if (!$id) { //id should come from URL params
             return Response::json(['error' => 'ID must be given'], 400);
         }
-
-        $id = $data['id'];
-        unset($data['id']);
 
         if (empty($data)) {
             return Response::json(['error' => 'No data provided'], 400);
@@ -71,10 +84,9 @@ class ProductController
     }
 
 
-    public function delete()
+    public function deleteProduct($id)
     {
-        $data = json_decode(file_get_contents('php://input'), true);
-        if (!isset($data['id'])) { // take from url
+        if (!$id) { // take from url
             return Response::json([
                 'error' => 'No id provided'
             ], 500);
@@ -82,7 +94,8 @@ class ProductController
 
         // remove all relational data at a time.
 
-        if ($this->productModel->delete($data['id'])) {
+
+        if ($this->productModel->delete($id)) {
             return Response::json(['Product is deleted succcessfully.']);
         } else {
             return Response::json(['Product is deletion Failed.']);
