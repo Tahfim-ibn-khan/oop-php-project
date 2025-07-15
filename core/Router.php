@@ -18,20 +18,31 @@ class Router{
         $this->routes['patch'][$path] = $callback;
     }
 
-
-    // You create it once and this is used onece for Each case.
-    public function resolve($method, $path) {
-    $method = strtolower($method);
-    $path = rtrim($path, '/');     
-
-    if (isset($this->routes[$method][$path])) {
-        [$class, $methodName] = $this->routes[$method][$path];
-        echo (new $class)->$methodName();
-    } else {
-        http_response_code(404);
-        echo json_encode(['error' => 'Route not found']);
+    public function delete($path, $callback){
+        $this->routes['delete'][$path] = $callback;
     }
-}
+
+
+
+    // You create it once and this is used once for Each case.
+    public function resolve($method, $path) {
+        $method = strtolower($method);
+        $path = rtrim($path, '/');
+
+        if (isset($this->routes[$method][$path])) {
+            $callback = $this->routes[$method][$path];
+
+            if (is_callable($callback)) {
+                call_user_func($callback);
+            } else {
+                http_response_code(500);
+                echo json_encode(['error' => 'Invalid route callback']);
+            }
+        } else {
+            http_response_code(404);
+            echo json_encode(['error' => 'Route not found']);
+        }
+    }
 
 }
 ?>

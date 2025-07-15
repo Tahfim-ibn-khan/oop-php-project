@@ -55,4 +55,14 @@ class Product extends Database{
         $stmt = $conn->prepare($query);
         return $stmt->execute($param);
     }
+
+
+    public function delete($id){
+        $conn = $this->connect();
+        $query = "DELETE FROM products WHERE id = :id;";
+        $stmt = $conn->prepare($query);
+        $delete = $stmt->execute([
+            "id" => $id
+        ]);
+    }
 }
