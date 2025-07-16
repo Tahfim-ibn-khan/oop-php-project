@@ -24,23 +24,27 @@ class UserController {
             }
         }
 
-        // Validate name
+        // Validations for the fields
+
         $name = trim($data['name']);
         if (strlen($name) < 2 || strlen($name) > 50) {
             return Response::json(['error' => 'Name must be between 2 and 50 characters.']);
         }
 
-        // Validate email format
         $email = trim($data['email']);
         if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
             return Response::json(['error' => 'Invalid email format.']);
         }
 
-        // Validate password strength
+
+        // Using regex to check the strength of the password
+        // It needs to be 8 charected atleast, 1 digit or 1 special charecter, and 1 lower and upper case letter atleast.
         $password = trim($data['password']);
-        if (strlen($password) < 8) {
-            return Response::json(['error' => 'Password must be at least 8 characters long.']);
-        }
+        $pattern = '/(?=^.{8,}$)((?=.*\d)|(?=.*\W+))(?![.\n])(?=.*[A-Z])(?=.*[a-z]).*$/';
+        if (!(preg_match($pattern, $password))) 
+            {
+                return Response::json(['Password must include one uppercase letter, one lowercase letter, one number, and one special character such as $ or %."']);
+            } 
 
         // Check if email already exists
         if ($this->userModel->findByEmail($email)) {
@@ -50,7 +54,7 @@ class UserController {
         $register = $this->userModel->register(
             $name,
             $email,
-            $password // Pass raw password
+            $password
         );
 
         if ($register) {

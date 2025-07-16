@@ -4,6 +4,7 @@ namespace Controllers;
 
 use Models\Product;
 use Helpers\Response;
+use Helpers\Authentication;
 
 class ProductController
 {
