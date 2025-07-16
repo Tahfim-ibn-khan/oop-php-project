@@ -7,7 +7,7 @@ use Models\User;
 use Helpers\Authentication;
 
 $productModel = new Product();
-$productController = new ProductController($productModel);
+$productController = new ProductController($productModel, $authentication);
 
 $userModel = new User();
 $authentication = new Authentication();

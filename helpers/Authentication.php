@@ -4,6 +4,7 @@ namespace Helpers;
 use Exception;
 use Firebase\JWT\JWT;
 use Firebase\JWT\Key;
+use Helpers\Response;
 
 class Authentication{
     
@@ -37,4 +38,22 @@ class Authentication{
             return $e;
         }
     }
+
+    public function verifyRole($role = 'Admin') {
+        $jwt = $_SERVER['HTTP_AUTHORIZATION'] ?? null;
+        if (!$jwt) {
+            return Response::json(['error' => 'Please Login First'], 401);
+        }
+    
+        $jwt = str_replace('Bearer ', '', $jwt);
+    
+        $decoded = JWT::decode($jwt, new Key($this->secretKey, 'HS256'));
+    
+        if ($decoded->role !== $role) {
+            return Response::json(['error' => 'Access Denied:'.$role.' Only'], 403);
+        }
+    
+        return true;
+    }
+    
 }
