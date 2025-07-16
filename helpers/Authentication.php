@@ -34,6 +34,11 @@ class Authentication{
         try {
             $decoded = JWT::decode($jwt, new Key($this->secretKey, 'HS256'));
             return $decoded->$field;
+
+            // $decoded = JWT::decode($jwt, new Key($this->secretKey, 'HS256'));
+            // print_r($decoded);
+            // die();
+
         } catch (Exception $e) {
             return $e;
         }

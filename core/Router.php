@@ -37,7 +37,7 @@ class Router{
             $routePattern = '#^' . rtrim($routePattern, '/') . '$#';
     
             if (preg_match($routePattern, $path, $matches)) {
-                array_shift($matches); // Remove full match
+                array_shift($matches);
                 [$controllerInstance, $methodName] = $callback;
                 echo call_user_func_array([$controllerInstance, $methodName], $matches);
                 return;
