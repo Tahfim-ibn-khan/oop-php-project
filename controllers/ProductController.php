@@ -4,15 +4,17 @@ namespace Controllers;
 
 use Models\Product;
 use Helpers\Response;
+use Helpers\Authentication;
 
 class ProductController
 {
 
     private $productModel;
+    private $authentication;
 
-    public function __construct(Product $productModel)
-    {
-        $this->productModel = $productModel;
+    public function __construct(Product $product, Authentication $authentication) {
+        $this->productModel = $product;
+        $this->authentication = $authentication;
     }
 
     private function getRequestData() {
@@ -21,9 +23,11 @@ class ProductController
 
     public function createProduct()
     {
-
+        $isAdmin = $this->authentication->verifyRole('Admin');
+        if ($isAdmin !== true) {
+            return $isAdmin;
+        }
         $data = $this->getRequestData();
-
 
         if (!isset($data['title'], $data['price'])) {
             return Response::json(['error' => 'invalid Input', 422]);
@@ -65,6 +69,11 @@ class ProductController
 
     public function updateProduct($id)
     {
+        $isAdmin = $this->authentication->verifyRole('Admin');
+        if ($isAdmin !== true) {
+            return $isAdmin;
+        }
+
         $data = $this->getRequestData();
         if (!$id) { //id should come from URL params
             return Response::json(['error' => 'ID must be given'], 400);
@@ -88,6 +97,12 @@ class ProductController
 
     public function deleteProduct($id)
     {
+
+        $isAdmin = $this->authentication->verifyRole('Admin');
+        if ($isAdmin !== true) {
+            return $isAdmin;
+        }
+
         if (!$id) { // take from url
             return Response::json([
                 'error' => 'No id provided'
@@ -98,7 +113,7 @@ class ProductController
 
 
         if ($this->productModel->delete($id)) {
-            return Response::json(['Product is deleted succcessfully.']);
+            return Response::json(['Product is deleted successfully.']);
         } else {
             return Response::json(['Product is deletion Failed.']);
         }

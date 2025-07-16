@@ -10,13 +10,20 @@ class User extends Database {
     // Defining $conn in the class and initializing it in the constructor
     // was causing unintended connection failures due to premature DB connection.
     // Solution: Use method-based lazy connection for better control.
+    // TODO: Need To understand the issue and discuss with Rocky bhaia
 
     private function getConnection() {
         return $this->connect();
     }
 
+    // This function has been created to check the duplicacy of the email while registering in the DB for validation
     public function findByEmail($email) {
         $conn = $this->getConnection();
+
+        /* Here The LIMIT clause could be escaped ad Email is unique.
+        But what it does is after finding the first row match, it will stop looking.
+        Unless it will iterarte through the whole thing which ois unnecessary.
+        */
         $query = "SELECT * FROM users WHERE email = :email LIMIT 1";
         $stmt = $conn->prepare($query);
         $stmt->execute(['email' => $email]);
