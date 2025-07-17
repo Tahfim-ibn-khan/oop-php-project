@@ -64,4 +64,14 @@ class User extends Database {
 
         return false;
     }
+
+
+    public function findById($id) {
+    $conn = $this->getConnection();
+    $query = "SELECT id, name, email, role FROM users WHERE id = :id LIMIT 1";
+    $stmt = $conn->prepare($query);
+    $stmt->execute(['id' => $id]);
+    return $stmt->fetch(\PDO::FETCH_ASSOC);
+}
+
 }
