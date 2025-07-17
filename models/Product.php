@@ -70,17 +70,16 @@ class Product extends Database{
         }
         $query = "UPDATE products SET ".implode(', ', $fields)." WHERE id = :id;";
         $stmt = $conn->prepare($query);
-        return $stmt->execute($param);
+        $stmt->execute($param);
+        return $stmt->rowCount();
     }
 
     public function delete($id){
         $conn = $this->connect();
         $query = "DELETE FROM products WHERE id = :id;";
         $stmt = $conn->prepare($query);
-        $delete = $stmt->execute([
-            "id" => $id
-        ]);
-        return $stmt->execute(["id" => $id]);
+        $stmt->execute(["id" => $id]);
+        return $stmt->rowCount();
     }
 
 }

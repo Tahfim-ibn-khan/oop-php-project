@@ -27,7 +27,7 @@ class Authentication{
     return $jwt;
     }
 
-    public function decodeToken($field){
+    public function decodeToken($field = 'user_id'){
         $jwt = $_SERVER['HTTP_AUTHORIZATION'] ?? null;
 
         if(!$jwt){
