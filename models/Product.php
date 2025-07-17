@@ -7,28 +7,28 @@ use PDOException;
 
 class Product extends Database{
     // ------------------------------C---------------------------
-    public function create($title, $description, $price, $stock_quantity, $image_url, $is_active){
+    public function createProduct($title, $description, $price, $stock_quantity, $image_url, $is_active, $category){
         $conn = $this->connect();
-        $query="INSERT INTO products (title, description, price, stock_quantity, image_url, is_active)
-        VALUES (:title, :description, :price, :stock_quantity, :image_url, :is_active);
-        ";
+        $query = "INSERT INTO products (title, description, price, stock_quantity, image_url, is_active, category)
+                VALUES (:title, :description, :price, :stock_quantity, :image_url, :is_active, :category);";
+
         $stmt = $conn->prepare($query);
+
         $insertion = $stmt->execute([
             "title" => $title,
             "description" => $description,
             "price" => $price,
             "stock_quantity" => $stock_quantity,
             "image_url" => $image_url,
-            "is_active" => $is_active
+            "is_active" => $is_active,
+            "category" => $category
         ]);
-        if($insertion == TRUE){
-            return $conn->lastInsertId();
-        }else{
-            return false;
-        }
+
+        return $insertion ? $conn->lastInsertId() : false;
     }
+
     // ------------------------------R---------------------------
-    public function read(){
+    public function getAllList(){
         $conn = $this->connect();
         $query = " SELECT * From Products;";
         $stmt = $conn->prepare($query);
@@ -40,7 +40,7 @@ class Product extends Database{
         }
     }
 
-    public function readById($id){
+    public function getById($id){
         $conn = $this->connect();
         $query = " SELECT * from Products WHERE id = :id";
         $stmt = $conn->prepare($query);
@@ -55,7 +55,7 @@ class Product extends Database{
         return $stmt->fetch(PDO::FETCH_ASSOC);
     }
     // ------------------------------u---------------------------
-    public function update($id, $data){
+    public function updateProduct($id, $data){
         $conn = $this->connect();
         $fields=[];
         $param=[];
@@ -74,7 +74,7 @@ class Product extends Database{
         return $stmt->rowCount();
     }
 
-    public function delete($id){
+    public function deleteProduct($id){
         $conn = $this->connect();
         $query = "DELETE FROM products WHERE id = :id;";
         $stmt = $conn->prepare($query);
