@@ -91,6 +91,7 @@ DELETE /orders/{id}         // Delete Order
 2. Unnecessary and sometimes meaningless comments in code.
 3. Poor time distribution during development.
 4. Areas of improvement in OOP usage (traits, interfaces, better dependency injection).
+5. Found resolving merge conflicts to be intimidating
 
 ---
 
