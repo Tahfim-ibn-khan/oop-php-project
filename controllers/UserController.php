@@ -109,4 +109,21 @@ class UserController {
             return Response::json(['error' => 'Login Failed']);
         }
     }
+
+    public function viewProfile() {
+    $userId = $this->authentication->decodeToken('user_id');
+
+    if (!$userId) {
+        return Response::json(['error' => 'Authentication required'], 401);
+    }
+
+    $user = $this->userModel->findById($userId);
+
+    if ($user) {
+        return Response::json(['profile' => $user]);
+    } else {
+        return Response::json(['error' => 'User not found'], 404);
+    }
+}
+
 }

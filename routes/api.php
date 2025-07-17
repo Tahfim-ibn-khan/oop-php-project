@@ -28,6 +28,7 @@ $router->delete('/products/{id}', [$productController, 'deleteProduct']);
 
 $router->post('/users/register', [$userController, 'register']);
 $router->post('/users/login', [$userController, 'login']);
+$router->get('/users/profile', [$userController, 'viewProfile']);
 
 $router->post('/orders', [$orderController, 'createOrder']);
 $router->get('/orders', [$orderController, 'getAllOrders']);
