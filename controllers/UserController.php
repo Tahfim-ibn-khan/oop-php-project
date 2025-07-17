@@ -14,7 +14,18 @@ class UserController {
         $this->authentication = $authentication;
     }
 
+
+    // Function to check access and authentication
+    private function log_status() {
+        $log_status = $this->authentication->decodeToken();
+        if($log_status != false){
+            Response::json(['error' => 'You are in logged in state. Please Logout first'], 403);
+            exit;
+        }
+    }
+
     public function register() {
+        $this->log_status();
         $data = Response::requestBody();
 
         $requiredFields = ['name', 'email', 'password'];
@@ -69,6 +80,7 @@ class UserController {
     }
 
     public function login() {
+        $this->log_status();
         $data = Response::requestBody();
 
         $requiredFields = ['email', 'password'];
