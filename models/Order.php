@@ -59,6 +59,4 @@ class Order extends Database {
         return $stmt->rowCount();
     }
 
-
-
 }

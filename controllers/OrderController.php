@@ -1,5 +1,4 @@
 <?php
-
 namespace Controllers;
 
 use Models\Order;
@@ -8,7 +7,6 @@ use Helpers\Authentication;
 
 class OrderController
 {
-
     private $orderModel;
     private $authentication;
 
@@ -18,13 +16,29 @@ class OrderController
         $this->authentication = $authentication;
     }
 
+
+    // Function to check access and authentication
+    private function authorize(array $allowedRoles) {
+        $role = $this->authentication->decodeToken('role');
+
+        if (in_array($role, $allowedRoles)) {
+            return true;
+        }
+        else if(!$role){
+            Response::json(['error' => 'Login First'], 401);
+            exit();
+        }
+
+        Response::json(['error' => 'Access Denied'], 403);
+        exit;
+    }
+
     public function createOrder()
     {
-        // $role = $this->authentication->decodeToken('role');
-        // if($role == 'Admin' || 'Customer');
+        $this->authorize(['Customer']);
+
         $data = Response::requestBody();
-        $field = 'user_id';
-        $userId = $this->authentication->decodeToken($field);
+        $userId = $this->authentication->decodeToken('user_id');
 
         if (!isset($data['productId'], $data['quantity'])) {
             return Response::json(['error' => 'Product ID and quantity required'], 400);
@@ -41,12 +55,14 @@ class OrderController
 
     public function getAllOrders()
     {
+        $this->authorize(['Admin']);
         $orders = $this->orderModel->getAllOrders();
         return Response::json(['data' => $orders]);
     }
 
     public function getOrderById($id)
     {
+        $this->authorize(['Admin']);
         $order = $this->orderModel->getOrderById($id);
 
         if ($order) {
@@ -57,15 +73,18 @@ class OrderController
     }
 
 
+
     public function getMyOrders() {
+        $this->authorize(['Customer']);
         $userId = $this->authentication->decodeToken('user_id');
-        echo $userId;
         $orders = $this->orderModel->getMyOrders($userId);
         return Response::json(['data' => $orders]);
     }
 
     // These two bellow functions were showing success, though the rows were not updated.
     public function updateOrder($id) {
+        $this->authorize(['Customer']);
+
         $data = Response::requestBody();
 
         if (!isset($data['quantity'])) {
@@ -77,17 +96,31 @@ class OrderController
         if ($updated > 0) {
             return Response::json(['message' => 'Order Quantity Updated']);
         } else {
-            return Response::json(['error' => 'Order Update Failed'], 500);
+            return Response::json(['error' => 'Order Not Found or Quantity Unchanged'], 400);
         }
     }
 
     public function deleteOrder($id) {
+        $this->authorize(['Customer', 'Admin']);
+
         $deleted = $this->orderModel->deleteOrder($id);
 
         if ($deleted > 0) {
             return Response::json(['message' => 'Order Deleted Successfully']);
         } else {
-            return Response::json(['error' => 'Order Deletion Failed'], 500);
+            return Response::json(['error' => 'Order Not Found'], 404);
         }
     }
 }
+
+
+
+    // $check = $this->authentication->decodeToken('role');
+    // if($check == 'Customer' || 'Admin'){
+    //     // Code here
+    // }else if(!($check == 'Customer' || 'Admin')){
+    //     return Response::json(['message' => 'Access denied'],403);
+    // }
+    // else{
+    //     return Response::json(['message' => $check], 401);
+    // }

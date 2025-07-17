@@ -28,22 +28,23 @@ class Authentication{
     }
 
     public function decodeToken($field){
-        $jwt = $_SERVER['HTTP_AUTHORIZATION'];
-        $jwt = str_replace('Bearer ', '',$jwt);
+        $jwt = $_SERVER['HTTP_AUTHORIZATION'] ?? null;
 
+        if(!$jwt){
+            return false;
+        }
+        $jwt = str_replace('Bearer ', '',$jwt);
         try {
             $decoded = JWT::decode($jwt, new Key($this->secretKey, 'HS256'));
             return $decoded->$field;
-
-            // $decoded = JWT::decode($jwt, new Key($this->secretKey, 'HS256'));
-            // print_r($decoded);
-            // die();
 
         } catch (Exception $e) {
             return $e;
         }
     }
 
+
+    // This was used in the products controller but we can achive the same thing with the decodeToken function
     public function verifyRole($role = 'Admin') {
         $jwt = $_SERVER['HTTP_AUTHORIZATION'] ?? null;
         if (!$jwt) {
