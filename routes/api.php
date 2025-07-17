@@ -32,6 +32,10 @@ $router->post('/users/login', [$userController, 'login']);
 $router->post('/orders', [$orderController, 'createOrder']);
 $router->get('/orders', [$orderController, 'getAllOrders']);
 $router->get('/orders/{id}', [$orderController, 'getOrderById']);
+// Latest Works
+$router->get('/my-orders', [$orderController, 'getMyOrders']);
+$router->patch('/orders/{id}', [$orderController, 'updateOrder']);
+$router->delete('/orders/{id}', [$orderController, 'deleteOrder']);
 
 
 $router->resolve($_SERVER['REQUEST_METHOD'], parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH));

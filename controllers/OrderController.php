@@ -18,9 +18,10 @@ class OrderController
         $this->authentication = $authentication;
     }
 
-
     public function createOrder()
     {
+        // $role = $this->authentication->decodeToken('role');
+        // if($role == 'Admin' || 'Customer');
         $data = Response::requestBody();
         $field = 'user_id';
         $userId = $this->authentication->decodeToken($field);
@@ -38,16 +39,11 @@ class OrderController
         }
     }
 
-
-
-
     public function getAllOrders()
     {
         $orders = $this->orderModel->getAllOrders();
         return Response::json(['data' => $orders]);
     }
-
-
 
     public function getOrderById($id)
     {
@@ -61,7 +57,37 @@ class OrderController
     }
 
 
-    // public function getMyOrder($id){
-    //     $query = ''
-    // }
+    public function getMyOrders() {
+        $userId = $this->authentication->decodeToken('user_id');
+        echo $userId;
+        $orders = $this->orderModel->getMyOrders($userId);
+        return Response::json(['data' => $orders]);
+    }
+
+    // These two bellow functions were showing success, though the rows were not updated.
+    public function updateOrder($id) {
+        $data = Response::requestBody();
+
+        if (!isset($data['quantity'])) {
+            return Response::json(['error' => 'Quantity is required'], 400);
+        }
+
+        $updated = $this->orderModel->updateOrderQuantity($id, $data['quantity']);
+
+        if ($updated > 0) {
+            return Response::json(['message' => 'Order Quantity Updated']);
+        } else {
+            return Response::json(['error' => 'Order Update Failed'], 500);
+        }
+    }
+
+    public function deleteOrder($id) {
+        $deleted = $this->orderModel->deleteOrder($id);
+
+        if ($deleted > 0) {
+            return Response::json(['message' => 'Order Deleted Successfully']);
+        } else {
+            return Response::json(['error' => 'Order Deletion Failed'], 500);
+        }
+    }
 }

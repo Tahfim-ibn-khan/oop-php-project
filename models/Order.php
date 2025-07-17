@@ -15,6 +15,7 @@ class Order extends Database {
         $conn = $this->getConnection();
         $query = "INSERT INTO orders (customer_id, product_id, quantity) VALUES (?, ?, ?)";
         $stmt = $conn->prepare($query);
+        echo $customerId;
         try {
             $stmt->execute([$customerId, $productId, $quantity]);
             return $conn->lastInsertId();
@@ -37,16 +38,27 @@ class Order extends Database {
         return $stmt->fetch(PDO::FETCH_ASSOC);
     }
 
-    // public function getMyOrder($id){
-    //     $conn = $this->getConnection();
-    //     $query = "SELECT * FROM ORDERS WHERE customer_id = ? ORDER BY created_at DESC";
-    //     $stmt = $conn->prepare($query);
+    public function getMyOrders($customerId){
+        $conn = $this->getConnection();
+        $stmt = $conn->prepare("SELECT * FROM orders WHERE customer_id = ? ORDER BY created_at DESC");
+        $stmt->execute([$customerId]);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
 
-    //     try {
-    //         $stmt = $conn->prepare($query);
-    //         $stmt->execute([$id]);
-    //     } catch (\Throwable $th) {
-    //         return false;
-    //     }
-    // }
+    public function updateOrderQuantity($orderId, $quantity){
+        $conn = $this->getConnection();
+        $stmt = $conn->prepare("UPDATE orders SET quantity = ? WHERE id = ?");
+        $stmt->execute([$quantity, $orderId]);
+        return $stmt->rowCount();
+    }
+
+    public function deleteOrder($orderId){
+        $conn = $this->getConnection();
+        $stmt = $conn->prepare("DELETE FROM orders WHERE id = ?");
+        $stmt->execute([$orderId]);
+        return $stmt->rowCount();
+    }
+
+
+
 }
