@@ -22,7 +22,6 @@ class ProductController
     }    
 
 
-
     // Function to check access and authentication
     private function authorize(array $allowedRoles) {
         $role = $this->authentication->decodeToken('role');
@@ -45,13 +44,55 @@ class ProductController
         $this->authorize(['Admin']);
         $data = $this->getRequestData();
 
-        if (!isset($data['title'], $data['price'])) {
-            return Response::json(['error' => 'invalid Input', 422]);
+        // Validate required fields
+        $requiredFields = ['title', 'price', 'category', 'stock_quantity', 'is_active'];
+        $missingFields = [];
+
+        // it must provide the mendatory fields
+        foreach ($requiredFields as $field) {
+            if (!isset($data[$field]) || $data[$field] === '') {
+                $missingFields[] = $field;
+            }
         }
 
-        //$product = new Product(); this is not good practice and find out why and write better solution
+        if (!empty($missingFields)) {
+            return Response::json([
+                'error' => 'Missing required fields: ' . implode(', ', $missingFields)
+            ], 422);
+        }
 
-        $id = $this->productModel->create($data['title'], $data['description'] ?? null, $data['price'], $data['stock_quantity'] ?? null, $data['image_url'] ?? null, $data['is_active'] ?? true); // Need few more info
+        // There are limited number of categories
+        if (isset($data['category'])) {
+        $allowedCategories = ['Mobiles', 'Accessories', 'Chargers'];
+        if (!in_array($data['category'], $allowedCategories)) {
+            return Response::json(['error' => 'Invalid category.'], 422);
+        }
+        }
+
+
+        // Validating price and stock_quantity as numeric
+        if (!is_numeric($data['price']) || $data['price'] <= 0) {
+            return Response::json(['error' => 'Price must be a positive number.'], 422);
+        }
+
+        if (!is_numeric($data['stock_quantity']) || $data['stock_quantity'] < 0) {
+            return Response::json(['error' => 'Stock quantity must be zero or more.'], 422);
+        }
+
+        // description and image link can be given later
+        $description = $data['description'] ?? null;
+        $imageUrl = $data['image_url'] ?? null;
+
+        $id = $this->productModel->createProduct(
+            $data['title'],
+            $description,
+            $data['price'],
+            $data['stock_quantity'],
+            $imageUrl,
+            $data['is_active'],
+            $data['category']
+        );
+
         return Response::json([
             'message' => "Product Created",
             'id' => $id
@@ -59,10 +100,17 @@ class ProductController
     }
 
 
+
     // Everyone can view all the products
     public function getAllList()
     { // getAllList()
-        $items = $this->productModel->read();
+
+        $items = $this->productModel->getAllList();
+        if(empty($items)){
+            return Response::json([
+            'message' => "Products Not Found"
+        ], 404);
+        }
 
         return Response::json([
             'message' => "Products Found",
@@ -73,9 +121,18 @@ class ProductController
 
     public function getById($id)
     { // getAllList()
+        // id must be numeric
+        if (!is_numeric($id)) {
+            return Response::json(['error' => 'Invalid id.'], 422);
+        }
 
-        $items = $this->productModel->readById($id);
+        $items = $this->productModel->getById($id);
 
+        if(empty($items)){
+            return Response::json([
+            'message' => "Product Not Found"
+        ], 404);
+        }
         return Response::json([
             'message' => "Product Found",
             'data' => $items
@@ -84,6 +141,10 @@ class ProductController
 
     public function updateProduct($id)
     {
+        // id must be numeric
+        if (!is_numeric($id)) {
+            return Response::json(['error' => 'Invalid id.'], 422);
+        }
         $this->authorize(['Admin']);
 
         $data = $this->getRequestData();
@@ -95,8 +156,29 @@ class ProductController
             return Response::json(['error' => 'No data provided'], 400);
         }
 
+        // 
+        if (isset($data['category'])) {
+            $allowedCategories = ['Mobiles', 'Accessories', 'Chargers'];
+            if (!in_array($data['category'], $allowedCategories)) {
+                return Response::json(['error' => 'Invalid category.'], 422);
+            }
+        }
 
-        $succes = $this->productModel->update($id, $data);
+
+        // must be numeric
+        if (isset($data['price'])) {
+            if (!is_numeric($data['price']) || $data['price'] <= 0) {
+                return Response::json(['error' => 'Price must be a positive number.'], 422);
+            }
+        }
+
+        if (isset($data['stock_quantity'])) {
+            if (!is_numeric($data['stock_quantity']) || $data['stock_quantity'] < 0) {
+                return Response::json(['error' => 'Stock quantity must be zero or more.'], 422);
+            }
+        }
+
+        $succes = $this->productModel->updateProduct($id, $data);
 
         if ($succes > 0) {
             return Response::json(["Data Updated Successfully"]);
@@ -109,24 +191,27 @@ class ProductController
 
     public function deleteProduct($id)
     {
+        // id must be numeric
+        if (!is_numeric($id)) {
+            return Response::json(['error' => 'Invalid id.'], 422);
+        }
 
         $this->authorize(['Admin']);
 
         if (!$id) { // take from url
             return Response::json([
                 'error' => 'No id provided'
-            ], 500);
+            ], 400);
         }
 
         // remove all relational data at a time.
 
-        $delete = $this->productModel->delete($id);
-        echo $delete;
+        $delete = $this->productModel->deleteProduct($id);
 
         if ($delete > 0) {
             return Response::json(['Product is deleted successfully.']);
         } else {
-            return Response::json(['Product is deletion Failed.']);
+            return Response::json(['Product is deletion Failed.'], 500);
         }
     }
 }
