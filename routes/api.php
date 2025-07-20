@@ -35,8 +35,9 @@ $router->get('/orders', [$orderController, 'getAllOrders']);
 $router->get('/orders/{id}', [$orderController, 'getOrderById']);
 // Latest Works
 $router->get('/my-orders', [$orderController, 'getMyOrders']);
-$router->patch('/orders/{id}', [$orderController, 'updateOrder']);
 $router->delete('/orders/{id}', [$orderController, 'deleteOrder']);
+$router->patch('/orders/{id}/status', [$orderController, 'updateOrderStatus']);
+
 
 
 $router->resolve($_SERVER['REQUEST_METHOD'], parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH));

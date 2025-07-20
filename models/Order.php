@@ -11,17 +11,35 @@ class Order extends Database {
     }
 
     // ---------------- C -----------------
-    public function createOrder($customerId, $productId, $quantity){
+        public function createOrderWithItems($customerId, $items){
         $conn = $this->getConnection();
-        $query = "INSERT INTO orders (customer_id, product_id, quantity) VALUES (?, ?, ?)";
-        $stmt = $conn->prepare($query);
-        echo $customerId;
-        try {
-            $stmt->execute([$customerId, $productId, $quantity]);
-            return $conn->lastInsertId();
-        } catch (\PDOException $e) {
-            return false;
+
+        $totalAmount = 0;
+        foreach ($items as $item) {
+            $totalAmount += $item['quantity'] * $item['price'];
         }
+
+        // insertion into orders
+        $orderQuery = "INSERT INTO orders (user_id, total_amount, status, created_at) VALUES (?, ?, 'pending', NOW())";
+        $stmt = $conn->prepare($orderQuery);
+        $stmt->execute([$customerId, $totalAmount]);
+
+        $orderId = $conn->lastInsertId();
+
+        // inserting items into order_items
+        $itemQuery = "INSERT INTO order_items (order_id, product_id, quantity, price_at_purchase) VALUES (?, ?, ?, ?)";
+        $itemStmt = $conn->prepare($itemQuery);
+
+        foreach ($items as $item) {
+            $itemStmt->execute([
+                $orderId,
+                $item['productId'],
+                $item['quantity'],
+                $item['price']
+            ]);
+        }
+
+        return $orderId;
     }
 
     public function getAllOrders(){
@@ -40,23 +58,37 @@ class Order extends Database {
 
     public function getMyOrders($customerId){
         $conn = $this->getConnection();
-        $stmt = $conn->prepare("SELECT * FROM orders WHERE customer_id = ? ORDER BY created_at DESC");
+
+        $query = "
+            SELECT o.id as order_id, o.total_amount, o.status, o.created_at,
+                   i.product_id, i.quantity, i.price_at_purchase
+            FROM orders o
+            JOIN order_items i ON o.id = i.order_id
+            WHERE o.user_id = ?
+            ORDER BY o.created_at DESC
+        ";
+
+        $stmt = $conn->prepare($query);
         $stmt->execute([$customerId]);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    public function updateOrderQuantity($orderId, $quantity){
+    public function updateOrderStatus($orderId, $status){
         $conn = $this->getConnection();
-        $stmt = $conn->prepare("UPDATE orders SET quantity = ? WHERE id = ?");
-        $stmt->execute([$quantity, $orderId]);
+        $stmt = $conn->prepare("UPDATE orders SET status = ? WHERE id = ?");
+        $stmt->execute([$status, $orderId]);
         return $stmt->rowCount();
     }
 
     public function deleteOrder($orderId){
         $conn = $this->getConnection();
-        $stmt = $conn->prepare("DELETE FROM orders WHERE id = ?");
-        $stmt->execute([$orderId]);
-        return $stmt->rowCount();
-    }
 
+        $stmt1 = $conn->prepare("DELETE FROM order_items WHERE order_id = ?");
+        $stmt1->execute([$orderId]);
+
+        $stmt2 = $conn->prepare("DELETE FROM orders WHERE id = ?");
+        $stmt2->execute([$orderId]);
+
+        return $stmt2->rowCount();
+    }
 }
