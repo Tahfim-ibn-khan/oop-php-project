@@ -23,28 +23,33 @@ class OrderController
 
         if (in_array($role, $allowedRoles)) {
             return true;
-        }
-        else if(!$role){
+        } else if (!$role) {
             Response::json(['error' => 'Login First'], 401);
             exit();
         }
 
         Response::json(['error' => 'Access Denied'], 403);
-        exit;
+        exit();
     }
+
 
     public function createOrder()
     {
         $this->authorize(['Customer']);
-
         $data = Response::requestBody();
         $userId = $this->authentication->decodeToken('user_id');
 
-        if (!isset($data['productId'], $data['quantity'])) {
-            return Response::json(['error' => 'Product ID and quantity required'], 400);
+        if (!isset($data['items']) || !is_array($data['items'])) {
+            return Response::json(['error' => 'Order items required'], 400);
         }
 
-        $orderId = $this->orderModel->createOrder($userId, $data['productId'], $data['quantity']);
+        foreach ($data['items'] as $item) {
+            if (!isset($item['productId'], $item['quantity'], $item['price'])) {
+                return Response::json(['error' => 'Each item must have productId, quantity and price'], 400);
+            }
+        }
+
+        $orderId = $this->orderModel->createOrderWithItems($userId, $data['items']);
 
         if ($orderId) {
             return Response::json(['message' => 'Order Created Successfully', 'orderId' => $orderId], 201);
@@ -60,6 +65,10 @@ class OrderController
         return Response::json(['data' => $orders]);
     }
 
+
+
+
+
     public function getOrderById($id)
     {
         $this->authorize(['Admin']);
@@ -72,37 +81,17 @@ class OrderController
         }
     }
 
-
-
-    public function getMyOrders() {
+    public function getMyOrders()
+    {
         $this->authorize(['Customer']);
         $userId = $this->authentication->decodeToken('user_id');
         $orders = $this->orderModel->getMyOrders($userId);
         return Response::json(['data' => $orders]);
     }
 
-    // These two bellow functions were showing success, though the rows were not updated.
-    public function updateOrder($id) {
-        $this->authorize(['Customer']);
-
-        $data = Response::requestBody();
-
-        if (!isset($data['quantity'])) {
-            return Response::json(['error' => 'Quantity is required'], 400);
-        }
-
-        $updated = $this->orderModel->updateOrderQuantity($id, $data['quantity']);
-
-        if ($updated > 0) {
-            return Response::json(['message' => 'Order Quantity Updated']);
-        } else {
-            return Response::json(['error' => 'Order Not Found or Quantity Unchanged'], 400);
-        }
-    }
-
-    public function deleteOrder($id) {
+    public function deleteOrder($id)
+    {
         $this->authorize(['Customer', 'Admin']);
-
         $deleted = $this->orderModel->deleteOrder($id);
 
         if ($deleted > 0) {
@@ -111,16 +100,27 @@ class OrderController
             return Response::json(['error' => 'Order Not Found'], 404);
         }
     }
+     // These two bellow functions were showing success, though the rows were not updated.
+    public function updateOrderStatus($id)
+    {
+        $this->authorize(['Admin']);
+        $data = Response::requestBody();
+
+        if (!isset($data['status'])) {
+            return Response::json(['error' => 'Status is required'], 400);
+        }
+
+        $allowedStatuses = ['pending', 'confirmed', 'shipped', 'delivered', 'cancelled'];
+        if (!in_array($data['status'], $allowedStatuses)) {
+            return Response::json(['error' => 'Invalid status'], 400);
+        }
+
+        $updated = $this->orderModel->updateOrderStatus($id, $data['status']);
+
+        if ($updated > 0) {
+            return Response::json(['message' => 'Order Status Updated']);
+        } else {
+            return Response::json(['error' => 'Order Not Found or Status Unchanged'], 400);
+        }
+    }
 }
-
-
-
-    // $check = $this->authentication->decodeToken('role');
-    // if($check == 'Customer' || 'Admin'){
-    //     // Code here
-    // }else if(!($check == 'Customer' || 'Admin')){
-    //     return Response::json(['message' => 'Access denied'],403);
-    // }
-    // else{
-    //     return Response::json(['message' => $check], 401);
-    // }
